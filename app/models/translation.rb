@@ -1,6 +1,6 @@
 require 'digest/md5'
 class Translation < ActiveRecord::Base
-  belongs_to :locale
+	belongs_to :locale, :class_name => "I18n::Backend::Locale"
   validates_presence_of :key
   before_validation :generate_hash_key, :on => :create
   after_update :update_cache
@@ -35,11 +35,11 @@ class Translation < ActiveRecord::Base
 protected
   def generate_hash_key
     self.raw_key = key.to_s
-    self.key = Translation.hk(key)
+    self.key = self.class.hk(key)
   end
 
   def update_cache
-    new_cache_key = Translation.ck(self.locale, self.key, false)
+    new_cache_key = self.class.ck(self.locale, self.key, false)
     I18n.backend.cache_store.write(new_cache_key, self.value)
   end
 end
